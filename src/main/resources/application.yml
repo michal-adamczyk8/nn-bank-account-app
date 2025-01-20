@@ -1,3 +1,5 @@
+nbp:
+  url: https://api.nbp.pl/api
 spring:
   application:
     name: Bank account app
@@ -9,3 +11,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic

@@ -15,6 +15,7 @@ import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 public class BankAccountFacade {
 
     BankAccountRepository repository;
+    CurrencyExchange currencyExchange;
 
     public UUID openAccount(OpenAccountDto dto) {
         checkNotNull(dto, "OpenAccountDto cannot be null");

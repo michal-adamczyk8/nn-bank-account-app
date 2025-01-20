@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 class BankAccountConfiguration {
 
     @Bean
-    BankAccountFacade bankAccountFacade(final BankAccountRepository repository) {
-        return new BankAccountFacade(repository);
+    BankAccountFacade bankAccountFacade(final BankAccountRepository repository, final CurrencyExchange currencyExchange) {
+        return new BankAccountFacade(repository, currencyExchange);
     }
 }
