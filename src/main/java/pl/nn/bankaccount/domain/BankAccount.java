@@ -1,40 +1,45 @@
 package pl.nn.bankaccount.domain;
 
-import static pl.nn.bankaccount.common.Validator.checkNotBlank;
+import static java.util.Objects.requireNonNull;
+import static pl.nn.bankaccount.common.validation.Validator.checkNotBlank;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pl.nn.bankaccount.domain.dto.BalanceDto;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
+import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
+import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
 import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter(AccessLevel.PACKAGE)
 class BankAccount {
 
     @Id
-    @Getter
     private UUID id;
     private String firstName;
     private String lastName;
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "pln__balance_amount"))
-    @AttributeOverride(name = "currency", column = @Column(name = "pln_balance_currency"))
     private Balance plnBalance;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "usd__balance_amount"))
-    @AttributeOverride(name = "currency", column = @Column(name = "usd_balance_currency"))
-    private Balance usdBalance;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Map<Currency, Balance> foreignBalances;
 
     static BankAccount open(OpenAccountDto dto) {
         UUID id = UUID.randomUUID();
@@ -42,13 +47,61 @@ class BankAccount {
         String lastName = dto.lastName();
         checkNotBlank(firstName, "First name required");
         checkNotBlank(lastName, "Last name required");
-        Balance initialBalanceInPln = Balance.create(dto.initialBalanceInPln(), Currency.PLN);
-        Balance initialBalanceInUsd = Balance.createEmpty(Currency.USD);
-        return new BankAccount(id, firstName, lastName, initialBalanceInPln, initialBalanceInUsd);
+        Balance initialBalanceInPln = new Balance(dto.initialBalanceInPln(), Currency.PLN);
+        Map<Currency, Balance> foreignBalances = new HashMap<>();
+        return new BankAccount(id, firstName, lastName, initialBalanceInPln, foreignBalances);
+    }
+
+    public void exchangeBalance(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
+        //TODO: null validation?
+        if (requireNonNull(dto.operation()) == ExchangeOperation.BUY) {
+            buyCurrency(dto, exchangeRate);
+        } else {
+            sellCurrency(dto, exchangeRate);
+        }
+    }
+
+    private void buyCurrency(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
+        Currency currencyToBuy = dto.currency();
+        BigDecimal amountToBuy = dto.amount();
+        BigDecimal askPrice = exchangeRate.ask();
+        BigDecimal exchangedAmount = amountToBuy.multiply(askPrice);
+        if (plnBalance.hasInsufficientFunds(exchangedAmount)) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+        foreignBalances.putIfAbsent(currencyToBuy, new Balance(BigDecimal.ZERO, currencyToBuy));
+        Balance foreignBalance = foreignBalances.get(currencyToBuy);
+
+        plnBalance = plnBalance.subtract(exchangedAmount);
+        Balance updatedForeignBalance = foreignBalance.add(amountToBuy);
+        foreignBalances.put(currencyToBuy, updatedForeignBalance);
+    }
+
+    private void sellCurrency(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
+        Currency currencyToSell = dto.currency();
+        BigDecimal amountToSell = dto.amount();
+        if (foreignBalances.isEmpty()) {
+            throw new IllegalArgumentException("Cannot exchange zero foreign balance");
+        }
+        if (!foreignBalances.containsKey(currencyToSell)) {
+            throw new IllegalArgumentException("No balance in " + currencyToSell + " currency");
+        }
+        Balance foreignBalance = foreignBalances.get(currencyToSell);
+        if (foreignBalance.hasInsufficientFunds(amountToSell)) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+        BigDecimal bidPrice = exchangeRate.bid();
+        BigDecimal exchangedAmount = amountToSell.multiply(bidPrice);
+        foreignBalances.put(currencyToSell, foreignBalance.subtract(amountToSell));
+        plnBalance = plnBalance.add(exchangedAmount);
     }
 
 
     BankAccountDto toDto() {
-        return new BankAccountDto(id, firstName, lastName, plnBalance.toDto(), usdBalance.toDto());
+        Set<BalanceDto> foreignBalancesDto = foreignBalances.isEmpty() ? Set.of() :
+                foreignBalances.values().stream()
+                        .map(Balance::toDto)
+                        .collect(Collectors.toSet());
+        return new BankAccountDto(id, firstName, lastName, plnBalance.toDto(), foreignBalancesDto);
     }
 }

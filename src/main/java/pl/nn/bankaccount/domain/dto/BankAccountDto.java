@@ -1,5 +1,6 @@
 package pl.nn.bankaccount.domain.dto;
 
+import java.util.Set;
 import java.util.UUID;
 
 public record BankAccountDto(
@@ -7,6 +8,6 @@ public record BankAccountDto(
         String firstName,
         String lastName,
         BalanceDto balanceInPln,
-        BalanceDto balanceInUsd
-){
+        Set<BalanceDto> foreignBalances
+) {
 }

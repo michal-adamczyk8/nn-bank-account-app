@@ -1,7 +1,7 @@
 package pl.nn.bankaccount.infrastructure.currency;
 
 import static lombok.AccessLevel.PRIVATE;
-import static pl.nn.bankaccount.common.Validator.checkNotNull;
+import static pl.nn.bankaccount.common.validation.Validator.checkNotNull;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

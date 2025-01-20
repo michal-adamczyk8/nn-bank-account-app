@@ -1,4 +1,4 @@
-package pl.nn.bankaccount.common;
+package pl.nn.bankaccount.common.validation;
 
 public class Validator {
 
@@ -6,11 +6,16 @@ public class Validator {
         if (value == null) {
             throw new IllegalArgumentException(message);
         }
-
     }
 
     public static void checkNotBlank(String value, String message) {
         if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static void checkArgument(boolean condition, String message) {
+        if (!condition) {
             throw new IllegalArgumentException(message);
         }
     }
