@@ -1,5 +1,6 @@
 package pl.nn.bankaccount.infrastructure.currency;
 
+import feign.Logger;
 import feign.codec.ErrorDecoder;
 import feign.okhttp.OkHttpClient;
 import org.springframework.context.annotation.Bean;

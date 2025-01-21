@@ -10,6 +10,7 @@ import pl.nn.bankaccount.common.validation.dto.ValidationException;
 import pl.nn.bankaccount.common.valueobjects.Balance;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
+import pl.nn.bankaccount.domain.dto.InsufficientFundsException;
 import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 
 class BankAccountExchangeBalanceTest {
@@ -29,14 +30,6 @@ class BankAccountExchangeBalanceTest {
         //then
         assertUsdBalanceEqualTo(account, BigDecimal.valueOf(20));
         assertPlnBalanceEqualTo(account, BigDecimal.valueOf(1000).subtract(BigDecimal.valueOf(20).multiply(EXCHANGE_RATE.ask())));
-    }
-
-    private void assertUsdBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
-        assertThat(bankAccount.getForeignBalances()).containsEntry(Currency.USD, Balance.create(expectedAmount, Currency.USD));
-    }
-
-    private void assertPlnBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
-        assertThat(bankAccount.getPlnBalance()).isEqualTo(Balance.create(expectedAmount, Currency.PLN));
     }
 
     @Test
@@ -71,8 +64,7 @@ class BankAccountExchangeBalanceTest {
 
         //then
         assertThat(thrownException)
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Insufficient funds");
+                .isInstanceOf(InsufficientFundsException.class);
 
         //and
         assertThat(account.getForeignBalances()).isEmpty();
@@ -91,11 +83,10 @@ class BankAccountExchangeBalanceTest {
 
         //then
         assertThat(thrownException)
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Insufficient funds");
+                .isInstanceOf(InsufficientFundsException.class);
 
         //and
-        assertThat(account.getForeignBalances()).containsEntry(Currency.USD, Balance.create(BigDecimal.valueOf(20), Currency.USD));
+        assertUsdBalanceEqualTo(account, BigDecimal.valueOf(20));
     }
 
     @Test
@@ -116,6 +107,9 @@ class BankAccountExchangeBalanceTest {
 
         //and
         assertThat(account.getForeignBalances()).isEmpty();
+
+        //and
+        assertPlnBalanceEqualTo(account, BigDecimal.valueOf(1000));
     }
 
 
@@ -129,6 +123,14 @@ class BankAccountExchangeBalanceTest {
         var exchangeBalanceDto = new ExchangeBalanceDto(ExchangeOperation.BUY, Currency.USD, amount);
         bankAccount.exchangeBalance(exchangeBalanceDto, EXCHANGE_RATE);
         return bankAccount;
+    }
+
+    private void assertUsdBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
+        assertThat(bankAccount.getForeignBalances()).containsEntry(Currency.USD, Balance.create(expectedAmount, Currency.USD));
+    }
+
+    private void assertPlnBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
+        assertThat(bankAccount.getPlnBalance()).isEqualTo(Balance.create(expectedAmount, Currency.PLN));
     }
 }
 

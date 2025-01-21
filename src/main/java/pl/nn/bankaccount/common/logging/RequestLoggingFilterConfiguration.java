@@ -14,7 +14,6 @@ class RequestLoggingFilterConfiguration {
         loggingFilter.setIncludeHeaders(true);
         loggingFilter.setMaxPayloadLength(10000);
         loggingFilter.setIncludeQueryString(true);
-        loggingFilter.setAfterMessagePrefix("Incoming request: ");
         return loggingFilter;
     }
 }
