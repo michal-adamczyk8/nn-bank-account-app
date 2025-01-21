@@ -21,9 +21,8 @@ public class BankAccountApplication {
 	//TODO: security
 	//TODO: spring profiles
 	//TODO: make integration tests run while building
-	//TODO: add optimistic locking
-	//TODO: add base entity
 	//TODO: tests for npb integartion
+	//even sourcing?
 
 	public static void main(String[] args) {
 		SpringApplication.run(BankAccountApplication.class, args);
