@@ -9,18 +9,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 public class BankAccountApplication {
 	public static final ZoneOffset DEFAULT_ZONE_OFFSET = ZoneOffset.UTC;
-
-	//TODO: Logging
-	//TODO: Hateos links
-	//TODO: Dockerize
-	//TODO: Tests
-	//TODO: Swagger
-	//TODO: cache
-	//TODO: security
 	//TODO: spring profiles
 	//TODO: tests for npb integartion
-	//TODO: logging in nbp client
-	//even sourcing?
 
 	public static void main(String[] args) {
 		SpringApplication.run(BankAccountApplication.class, args);

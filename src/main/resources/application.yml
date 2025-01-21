@@ -1,3 +1,5 @@
+server:
+  8089
 nbp:
   url: https://api.nbp.pl/api
 spring:
