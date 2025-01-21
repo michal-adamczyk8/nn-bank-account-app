@@ -7,17 +7,15 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pl.nn.bankaccount.common.persistence.BaseEntity;
 import pl.nn.bankaccount.domain.dto.BalanceDto;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
@@ -26,12 +24,9 @@ import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter(AccessLevel.PACKAGE)
-class BankAccount {
+class BankAccount extends BaseEntity {
 
-    @Id
-    private UUID id;
     private String firstName;
     private String lastName;
 
@@ -41,15 +36,22 @@ class BankAccount {
     @ElementCollection(fetch = FetchType.EAGER)
     private Map<Currency, Balance> foreignBalances;
 
+    BankAccount(String firstName, String lastName, Balance initialBalanceInPln, Map<Currency, Balance> foreignBalances) {
+        super();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.plnBalance = initialBalanceInPln;
+        this.foreignBalances = foreignBalances;
+    }
+
     static BankAccount open(OpenAccountDto dto) {
-        UUID id = UUID.randomUUID();
         String firstName = dto.firstName();
         String lastName = dto.lastName();
         checkNotBlank(firstName, "First name required");
         checkNotBlank(lastName, "Last name required");
         Balance initialBalanceInPln = new Balance(dto.initialBalanceInPln(), Currency.PLN);
-        Map<Currency, Balance> foreignBalances = new HashMap<>();
-        return new BankAccount(id, firstName, lastName, initialBalanceInPln, foreignBalances);
+        Map<Currency, Balance> foreignBalances = new EnumMap<>(Currency.class);
+        return new BankAccount(firstName, lastName, initialBalanceInPln, foreignBalances);
     }
 
     public void exchangeBalance(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
@@ -102,6 +104,6 @@ class BankAccount {
                 foreignBalances.values().stream()
                         .map(Balance::toDto)
                         .collect(Collectors.toSet());
-        return new BankAccountDto(id, firstName, lastName, plnBalance.toDto(), foreignBalancesDto);
+        return new BankAccountDto(getId(), firstName, lastName, plnBalance.toDto(), foreignBalancesDto);
     }
 }
