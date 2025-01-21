@@ -1,8 +1,8 @@
 package pl.nn.bankaccount.domain;
 
-import static java.util.Objects.requireNonNull;
 import static pl.nn.bankaccount.common.validation.Validator.checkArgument;
 import static pl.nn.bankaccount.common.validation.Validator.checkNotBlank;
+import static pl.nn.bankaccount.common.validation.Validator.checkNotNull;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
@@ -58,17 +58,20 @@ class BankAccount extends BaseEntity {
     }
 
     public void exchangeBalance(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
-        //TODO: null validation?
-        if (requireNonNull(dto.operation()) == ExchangeOperation.BUY) {
-            buyCurrency(dto, exchangeRate);
+        Currency currency = dto.currency();
+        BigDecimal amount = dto.amount();
+        ExchangeOperation operation = dto.operation();
+        checkNotNull(currency, "Exchange currency required");
+        checkNotNull(amount, "Exchange amount required");
+        checkNotNull(operation, "Exchange operation required");
+        if (dto.operation() == ExchangeOperation.BUY) {
+            buyCurrency(currency, amount, exchangeRate);
         } else {
-            sellCurrency(dto, exchangeRate);
+            sellCurrency(currency, amount, exchangeRate);
         }
     }
 
-    private void buyCurrency(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
-        Currency currencyToBuy = dto.currency();
-        BigDecimal amountToBuy = dto.amount();
+    private void buyCurrency(Currency currencyToBuy, BigDecimal amountToBuy, ExchangeRateDto exchangeRate) {
         BigDecimal askPrice = exchangeRate.ask();
         BigDecimal exchangedAmount = amountToBuy.multiply(askPrice);
 
@@ -83,9 +86,7 @@ class BankAccount extends BaseEntity {
         foreignBalances.put(currencyToBuy, updatedForeignBalance);
     }
 
-    private void sellCurrency(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
-        Currency currencyToSell = dto.currency();
-        BigDecimal amountToSell = dto.amount();
+    private void sellCurrency(Currency currencyToSell, BigDecimal amountToSell, ExchangeRateDto exchangeRate) {
         checkArgument(!foreignBalances.isEmpty(), "Cannot exchange zero foreign balance");
         checkArgument(foreignBalances.containsKey(currencyToSell), "No balance in " + currencyToSell + " currency");
         Balance foreignBalance = foreignBalances.get(currencyToSell);

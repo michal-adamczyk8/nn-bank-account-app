@@ -6,14 +6,14 @@ import static pl.nn.bankaccount.common.validation.Validator.checkNotNull;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
 import pl.nn.bankaccount.domain.dto.BankAccountNotFoundException;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
 import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = PRIVATE)
 public class BankAccountFacade {
@@ -25,6 +25,7 @@ public class BankAccountFacade {
         checkNotNull(dto, "OpenAccountDto required");
         BankAccount account = BankAccount.open(dto);
         repository.save(account);
+        log.info("Opened account with id: {}", account.getId());
         return account.getId();
     }
 
@@ -39,9 +40,11 @@ public class BankAccountFacade {
         checkNotNull(dto, "ExchangeBalanceDto required");
         checkNotNull(accountId, "accountId required");
         ExchangeRateDto exchangeRate = currencyExchange.getExchangeRate(dto.currency());
+        log.info("Got exchange rate: {}", exchangeRate);
         BankAccount account = repository.findById(accountId)
                 .orElseThrow(() -> new BankAccountNotFoundException(accountId));
         account.exchangeBalance(dto, exchangeRate);
         repository.save(account);
+        log.info("Exchanged balance for account with id: {}", accountId);
     }
 }

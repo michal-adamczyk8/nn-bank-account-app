@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
-import pl.nn.bankaccount.common.validation.ValidationException;
+import pl.nn.bankaccount.common.validation.dto.ValidationException;
 import pl.nn.bankaccount.common.valueobjects.Balance;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;

@@ -1,4 +1,4 @@
-package pl.nn.bankaccount.common.validation;
+package pl.nn.bankaccount.common.validation.dto;
 
 public class ValidationException extends RuntimeException {
 

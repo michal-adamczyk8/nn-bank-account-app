@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pl.nn.bankaccount.common.exception.dto.ErrorMessage;
-import pl.nn.bankaccount.common.validation.ValidationException;
+import pl.nn.bankaccount.common.validation.dto.ValidationException;
 
 @Slf4j
 @ControllerAdvice

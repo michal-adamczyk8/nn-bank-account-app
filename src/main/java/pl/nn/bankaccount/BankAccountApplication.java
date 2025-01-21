@@ -10,7 +10,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class BankAccountApplication {
 	public static final ZoneOffset DEFAULT_ZONE_OFFSET = ZoneOffset.UTC;
 
-	//TODO: Exception handling
 	//TODO: Logging
 	//TODO: Hateos links
 	//TODO: Dockerize
