@@ -13,24 +13,18 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@MappedSuperclass
+@Getter
 @NoArgsConstructor
+@MappedSuperclass
 @Access(FIELD)
 public abstract class BaseEntity {
     @Id
-    @Getter
     private UUID id = UUID.randomUUID();
 
-    @Getter
     @Version
     private Integer version;
 
-    @Getter
     protected OffsetDateTime createdDateTime = OffsetDateTime.now(DEFAULT_ZONE_OFFSET);
-
-    protected BaseEntity(final UUID id) {
-        this.id = id;
-    }
 
     @Override
     public boolean equals(final Object o) {

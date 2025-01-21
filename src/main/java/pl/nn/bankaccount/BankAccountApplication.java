@@ -19,8 +19,8 @@ public class BankAccountApplication {
 	//TODO: cache
 	//TODO: security
 	//TODO: spring profiles
-	//TODO: make integration tests run while building
 	//TODO: tests for npb integartion
+	//TODO: logging in nbp client
 	//even sourcing?
 
 	public static void main(String[] args) {

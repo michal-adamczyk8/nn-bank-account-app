@@ -1,5 +1,10 @@
 package pl.nn.bankaccount.common.validation;
 
+import static lombok.AccessLevel.PRIVATE;
+
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
 public class Validator {
 
     public static <T> void checkNotNull(T value, String message) {
