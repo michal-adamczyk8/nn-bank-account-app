@@ -1,6 +1,7 @@
 package pl.nn.bankaccount.domain;
 
 import static java.util.Objects.requireNonNull;
+import static pl.nn.bankaccount.common.validation.Validator.checkArgument;
 import static pl.nn.bankaccount.common.validation.Validator.checkNotBlank;
 
 import jakarta.persistence.ElementCollection;
@@ -21,6 +22,7 @@ import pl.nn.bankaccount.common.valueobjects.dto.BalanceDto;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
+import pl.nn.bankaccount.domain.dto.InsufficientFundsException;
 import pl.nn.bankaccount.domain.dto.OpenAccountDto;
 
 @Entity
@@ -69,8 +71,9 @@ class BankAccount extends BaseEntity {
         BigDecimal amountToBuy = dto.amount();
         BigDecimal askPrice = exchangeRate.ask();
         BigDecimal exchangedAmount = amountToBuy.multiply(askPrice);
+
         if (plnBalance.hasInsufficientFunds(exchangedAmount)) {
-            throw new IllegalArgumentException("Insufficient funds");
+            throw new InsufficientFundsException(getId());
         }
         foreignBalances.putIfAbsent(currencyToBuy, Balance.create(BigDecimal.ZERO, currencyToBuy));
         Balance foreignBalance = foreignBalances.get(currencyToBuy);
@@ -83,15 +86,11 @@ class BankAccount extends BaseEntity {
     private void sellCurrency(ExchangeBalanceDto dto, ExchangeRateDto exchangeRate) {
         Currency currencyToSell = dto.currency();
         BigDecimal amountToSell = dto.amount();
-        if (foreignBalances.isEmpty()) {
-            throw new IllegalArgumentException("Cannot exchange zero foreign balance");
-        }
-        if (!foreignBalances.containsKey(currencyToSell)) {
-            throw new IllegalArgumentException("No balance in " + currencyToSell + " currency");
-        }
+        checkArgument(!foreignBalances.isEmpty(), "Cannot exchange zero foreign balance");
+        checkArgument(foreignBalances.containsKey(currencyToSell), "No balance in " + currencyToSell + " currency");
         Balance foreignBalance = foreignBalances.get(currencyToSell);
         if (foreignBalance.hasInsufficientFunds(amountToSell)) {
-            throw new IllegalArgumentException("Insufficient funds");
+            throw new InsufficientFundsException(getId());
         }
         BigDecimal bidPrice = exchangeRate.bid();
         BigDecimal exchangedAmount = amountToSell.multiply(bidPrice);

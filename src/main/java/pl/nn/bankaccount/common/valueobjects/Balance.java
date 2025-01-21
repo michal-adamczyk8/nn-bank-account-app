@@ -1,6 +1,7 @@
 package pl.nn.bankaccount.common.valueobjects;
 
 import static lombok.AccessLevel.PROTECTED;
+import static pl.nn.bankaccount.common.validation.Validator.checkArgument;
 import static pl.nn.bankaccount.common.validation.Validator.checkNotNull;
 
 import jakarta.persistence.Embeddable;
@@ -20,10 +21,7 @@ public class Balance {
     private Balance(BigDecimal amount, Currency currency) {
         checkNotNull(amount, "Amount required");
         checkNotNull(currency, "Currency required");
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount cannot be negative");
-        }
-
+        checkArgument(amount.compareTo(BigDecimal.ZERO) >= 0, "Amount cannot be negative");
         this.amount = amount.setScale(2, RoundingMode.HALF_EVEN);
         this.currency = currency;
     }
@@ -37,11 +35,9 @@ public class Balance {
         return new Balance(updatedAmount, currency);
     }
 
-    public Balance subtract(BigDecimal amount) {
-        if (this.amount.compareTo(amount) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
-        }
-        BigDecimal updatedAmount = this.amount.subtract(amount);
+    public Balance subtract(BigDecimal amountToSubtract) {
+        checkArgument(this.amount.compareTo(amountToSubtract) >= 0, "Cannot withdraw more than current amount");
+        BigDecimal updatedAmount = this.amount.subtract(amountToSubtract);
         return new Balance(updatedAmount, currency);
     }
 

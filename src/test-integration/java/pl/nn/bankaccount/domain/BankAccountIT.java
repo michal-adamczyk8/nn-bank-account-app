@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,9 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import pl.nn.bankaccount.common.valueobjects.Balance;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
+import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
 import pl.nn.bankaccount.infrastructure.api.dto.ExchangeBalanceRequest;
 import pl.nn.bankaccount.infrastructure.api.dto.OpenAccountRequest;
@@ -68,7 +68,7 @@ class BankAccountIT {
         assertThat(accountDetails).isNotNull();
         assertThat(accountDetails.firstName()).isEqualTo(openAccountRequest.firstName());
         assertThat(accountDetails.lastName()).isEqualTo(openAccountRequest.lastName());
-        assertThat(accountDetails.balanceInPln()).isEqualTo(Balance.create(openAccountRequest.initialBalanceInPln(), Currency.PLN));
+        assertThat(accountDetails.balanceInPln().amount()).isEqualByComparingTo(openAccountRequest.initialBalanceInPln());
     }
 
 
@@ -140,7 +140,50 @@ class BankAccountIT {
 
         //then
         result.andExpect(status().isNotFound())
-                .andDo(MockMvcResultHandlers.print());
+                .andExpect(jsonPath("$.message").value("Bank account with id " + accountId + " not found"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when trying to sell usd and usd balance not exists")
+    void shouldReturn400WhenSellingUsd() throws Exception {
+        //given
+        var accountId = accountExists();
+
+        //and
+        var exchangeBalanceRequest = new ExchangeBalanceRequest(ExchangeOperation.SELL, Currency.USD, BigDecimal.valueOf(100.00));
+
+        //and
+        var apiRequest = givenExchangeBalanceApiRequest(accountId, exchangeBalanceRequest);
+
+        //and
+        when(currencyExchange.getExchangeRate(Currency.USD))
+                .thenReturn(givenExchangeRate());
+
+        //when
+        var result = mockMvc.perform(apiRequest);
+
+        //then
+        result.andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Cannot exchange zero foreign balance"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when trying to sell usd and usd balance is insufficient")
+    void shouldReturn400WhenTryingToSellUsdAndBalanceInsufficient() throws Exception {
+        var accountId = accountWithUsdExists();
+
+        //and
+        var exchangeBalanceRequest = new ExchangeBalanceRequest(ExchangeOperation.SELL, Currency.USD, BigDecimal.valueOf(100.00));
+
+        //and
+        var apiRequest = givenExchangeBalanceApiRequest(accountId, exchangeBalanceRequest);
+
+        //when
+        var result = mockMvc.perform(apiRequest);
+
+        //then
+        result.andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insufficient funds on account: " + accountId));
     }
 
 
@@ -168,6 +211,15 @@ class BankAccountIT {
     private UUID accountExists() {
         OpenAccountRequest request = givenOpenAccountRequest();
         return bankAccountFacade.openAccount(request.toDto());
+    }
+
+    private UUID accountWithUsdExists() {
+        OpenAccountRequest request = givenOpenAccountRequest();
+        UUID accountId = bankAccountFacade.openAccount(request.toDto());
+        when(currencyExchange.getExchangeRate(Currency.USD))
+                .thenReturn(givenExchangeRate());
+        bankAccountFacade.exchangeBalance(accountId, new ExchangeBalanceDto(ExchangeOperation.BUY, Currency.USD, BigDecimal.valueOf(10)));
+        return accountId;
     }
 
     private static ExchangeRateDto givenExchangeRate() {
