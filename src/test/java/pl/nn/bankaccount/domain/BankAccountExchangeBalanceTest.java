@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
+import pl.nn.bankaccount.common.valueobjects.Balance;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
 import pl.nn.bankaccount.domain.dto.OpenAccountDto;
@@ -30,11 +31,11 @@ class BankAccountExchangeBalanceTest {
     }
 
     private void assertUsdBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
-        assertThat(bankAccount.getForeignBalances()).containsEntry(Currency.USD, new Balance(expectedAmount, Currency.USD));
+        assertThat(bankAccount.getForeignBalances()).containsEntry(Currency.USD, Balance.create(expectedAmount, Currency.USD));
     }
 
     private void assertPlnBalanceEqualTo(BankAccount bankAccount, BigDecimal expectedAmount) {
-        assertThat(bankAccount.getPlnBalance()).isEqualTo(new Balance(expectedAmount, Currency.PLN));
+        assertThat(bankAccount.getPlnBalance()).isEqualTo(Balance.create(expectedAmount, Currency.PLN));
     }
 
     @Test
@@ -93,7 +94,7 @@ class BankAccountExchangeBalanceTest {
                 .hasMessage("Insufficient funds");
 
         //and
-        assertThat(account.getForeignBalances()).containsEntry(Currency.USD, new Balance(BigDecimal.valueOf(20), Currency.USD));
+        assertThat(account.getForeignBalances()).containsEntry(Currency.USD, Balance.create(BigDecimal.valueOf(20), Currency.USD));
     }
 
     @Test

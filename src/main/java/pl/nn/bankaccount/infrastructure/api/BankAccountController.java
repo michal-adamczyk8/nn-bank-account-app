@@ -1,10 +1,12 @@
 package pl.nn.bankaccount.infrastructure.api;
 
 import java.util.UUID;
+import javax.print.attribute.standard.Media;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,7 +36,7 @@ class BankAccountController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{accountId}")
+    @GetMapping(value = "/{accountId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<BankAccountDto> getAccountDetails(@PathVariable UUID accountId) {
         BankAccountDto accountDetails = bankAccountFacade.getAccountDetails(accountId);
         return ResponseEntity.ok(accountDetails);

@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import pl.nn.bankaccount.common.valueobjects.Balance;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
 import pl.nn.bankaccount.infrastructure.api.dto.ExchangeBalanceRequest;
@@ -67,7 +68,7 @@ class BankAccountIT {
         assertThat(accountDetails).isNotNull();
         assertThat(accountDetails.firstName()).isEqualTo(openAccountRequest.firstName());
         assertThat(accountDetails.lastName()).isEqualTo(openAccountRequest.lastName());
-        assertThat(accountDetails.balanceInPln().amount()).isEqualByComparingTo(openAccountRequest.initialBalanceInPln());
+        assertThat(accountDetails.balanceInPln()).isEqualTo(Balance.create(openAccountRequest.initialBalanceInPln(), Currency.PLN));
     }
 
 

@@ -1,37 +1,43 @@
-package pl.nn.bankaccount.domain;
+package pl.nn.bankaccount.common.valueobjects;
 
 import static lombok.AccessLevel.PROTECTED;
 import static pl.nn.bankaccount.common.validation.Validator.checkNotNull;
 
 import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
-import pl.nn.bankaccount.domain.dto.BalanceDto;
+import pl.nn.bankaccount.common.valueobjects.dto.BalanceDto;
+import pl.nn.bankaccount.domain.Currency;
 
 @Embeddable
 @NoArgsConstructor(access = PROTECTED)
-class Balance {
+public class Balance {
     BigDecimal amount;
     Currency currency;
 
-    Balance(BigDecimal amount, Currency currency) {
+    private Balance(BigDecimal amount, Currency currency) {
         checkNotNull(amount, "Amount required");
         checkNotNull(currency, "Currency required");
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Amount cannot be negative");
         }
 
-        this.amount = amount;
+        this.amount = amount.setScale(2, RoundingMode.HALF_EVEN);
         this.currency = currency;
     }
 
-    Balance add(BigDecimal amount) {
+    public static Balance create(BigDecimal amount, Currency currency) {
+        return new Balance(amount, currency);
+    }
+
+    public Balance add(BigDecimal amount) {
         BigDecimal updatedAmount = this.amount.add(amount);
         return new Balance(updatedAmount, currency);
     }
 
-    Balance subtract(BigDecimal amount) {
+    public Balance subtract(BigDecimal amount) {
         if (this.amount.compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
@@ -39,11 +45,11 @@ class Balance {
         return new Balance(updatedAmount, currency);
     }
 
-    boolean hasInsufficientFunds(BigDecimal amount) {
+    public boolean hasInsufficientFunds(BigDecimal amount) {
         return this.amount.compareTo(amount) < 0;
     }
 
-    BalanceDto toDto() {
+    public BalanceDto toDto() {
         return new BalanceDto(currency, amount);
     }
 

@@ -12,7 +12,6 @@ public class BankAccountApplication {
 
 	//TODO: Exception handling
 	//TODO: Logging
-	//TODO: Persistence after restart
 	//TODO: Hateos links
 	//TODO: Dockerize
 	//TODO: Tests

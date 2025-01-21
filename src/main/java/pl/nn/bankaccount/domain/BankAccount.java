@@ -16,7 +16,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.nn.bankaccount.common.persistence.BaseEntity;
-import pl.nn.bankaccount.domain.dto.BalanceDto;
+import pl.nn.bankaccount.common.valueobjects.Balance;
+import pl.nn.bankaccount.common.valueobjects.dto.BalanceDto;
 import pl.nn.bankaccount.domain.dto.BankAccountDto;
 import pl.nn.bankaccount.domain.dto.ExchangeBalanceDto;
 import pl.nn.bankaccount.domain.dto.ExchangeRateDto;
@@ -49,7 +50,7 @@ class BankAccount extends BaseEntity {
         String lastName = dto.lastName();
         checkNotBlank(firstName, "First name required");
         checkNotBlank(lastName, "Last name required");
-        Balance initialBalanceInPln = new Balance(dto.initialBalanceInPln(), Currency.PLN);
+        Balance initialBalanceInPln = Balance.create(dto.initialBalanceInPln(), Currency.PLN);
         Map<Currency, Balance> foreignBalances = new EnumMap<>(Currency.class);
         return new BankAccount(firstName, lastName, initialBalanceInPln, foreignBalances);
     }
@@ -71,7 +72,7 @@ class BankAccount extends BaseEntity {
         if (plnBalance.hasInsufficientFunds(exchangedAmount)) {
             throw new IllegalArgumentException("Insufficient funds");
         }
-        foreignBalances.putIfAbsent(currencyToBuy, new Balance(BigDecimal.ZERO, currencyToBuy));
+        foreignBalances.putIfAbsent(currencyToBuy, Balance.create(BigDecimal.ZERO, currencyToBuy));
         Balance foreignBalance = foreignBalances.get(currencyToBuy);
 
         plnBalance = plnBalance.subtract(exchangedAmount);
