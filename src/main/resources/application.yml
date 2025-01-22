@@ -1,7 +1,7 @@
-server:
-  8089
 nbp:
   url: https://api.nbp.pl/api
+server:
+  port: 8089
 spring:
   application:
     name: Bank account app
@@ -10,6 +10,11 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: password
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      minimum-idle: 2
+      maximum-pool-size: 100
   cloud:
     openfeign:
       client:

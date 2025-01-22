@@ -1,0 +1,12 @@
+{
+  "table": "C",
+  "currency": "dolar ameryka?ski",
+  "code": "USD",
+  "rates": [
+    {
+      "no": "012/C/NBP/2025",
+      "effectiveDate": "2025-01-20",
+      "ask": 4.1740
+    }
+  ]
+}
