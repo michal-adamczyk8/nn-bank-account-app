@@ -1,11 +1,10 @@
-```markdown
 # Aplikacja NN Bank Account
 
 ## Wymagania wstępne
 
-- **Java 21**: Upewnij się, że zainstalowano Java JDK 21.
-- **Maven**: Upewnij się, że Maven jest zainstalowany.
-- **Docker**: Upewnij się, że Docker jest zainstalowany.
+- Java 21: Upewnij się, że zainstalowano Java JDK 21.
+- Maven: Upewnij się, że Maven jest zainstalowany.
+- Docker: Upewnij się, że Docker jest zainstalowany.
 
 ## Uruchomienie aplikacji
 
