@@ -9,6 +9,7 @@ import pl.nn.bankaccount.infrastructure.currency.dto.CurrencyExchangeResponse;
         name = "nbp",
         url = "${nbp.url}")
 interface NbpFeignClient {
+
     @GetMapping("/exchangerates/rates/c/{currency}/?format=json")
     CurrencyExchangeResponse getCurrencyExchangeRate(@PathVariable String currency);
 }
